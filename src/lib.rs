@@ -6,10 +6,17 @@ use std::thread;
 
 const A: u64 = 1;
 const B: u64 = 2;
-
-const A2: u128 = 1;
-const B2: u128 = 2;
 const INIT: AtomicU64 = AtomicU64::new(0);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unsafe_fn() {
+        assert_eq!(true, unsafe_ub(100000000000000000));
+    }
+}
 
 // We want to allow multiple writers and multiple readers reading from and writing to the same
 // array. We do not care about missing writes, writing in the wrong order or reading in the wrong
@@ -19,11 +26,11 @@ const INIT: AtomicU64 = AtomicU64::new(0);
 // array.
 pub fn unsafe_ub(target: u64) -> bool {
     unsafe {
-        static mut ARR: [u128; 64] = [0; 64];
+        static mut ARR: [u64; 64] = [0; 64];
         let p0 = &mut ARR;
 
         // Spawn writer thread #1
-        let p1 = &mut *(p0 as *mut [u128; 64]);
+        let p1 = &mut *(p0 as *mut [u64; 64]);
         let (tx1, rx1) = std::sync::mpsc::sync_channel::<bool>(1);
         thread::spawn(move || loop {
             // Check if the reader has notified that we've reached the target and should stop
@@ -31,14 +38,14 @@ pub fn unsafe_ub(target: u64) -> bool {
                 Ok(_) => return,
                 Err(_) => {
                     for i in 0..64 {
-                        p1[i] = A2;
+                        p1[i] = A;
                     }
                 }
             }
         });
 
         // Spawn writer thread #2
-        let p2 = &mut *(p0 as *mut [u128; 64]);
+        let p2 = &mut *(p0 as *mut [u64; 64]);
         let (tx2, rx2) = std::sync::mpsc::sync_channel::<bool>(1);
         thread::spawn(move || loop {
             // Check if the reader has notified that we've reached the target and should stop
@@ -46,7 +53,7 @@ pub fn unsafe_ub(target: u64) -> bool {
                 Ok(_) => return,
                 Err(_) => {
                     for i in 0..64 {
-                        p2[i] = B2;
+                        p2[i] = B;
                     }
                 }
             }
@@ -54,7 +61,7 @@ pub fn unsafe_ub(target: u64) -> bool {
 
         // Spawn a reader thread
         let (tx, rx) = std::sync::mpsc::sync_channel::<bool>(1);
-        let p3 = &mut *(p0 as *mut [u128; 64]);
+        let p3 = &mut *(p0 as *mut [u64; 64]);
         thread::spawn(move || {
             // Keep track of the number of good and bad read values
             // A good value is any of A2 or B2. Anything else inbetween signifies that only some of
@@ -65,8 +72,8 @@ pub fn unsafe_ub(target: u64) -> bool {
                 for i in 0..64 {
                     // Read the value and check if it matches any of A2 or B2
                     let x = p3[i];
-                    let is_a = x == A2;
-                    let is_b = x == B2;
+                    let is_a = x == A;
+                    let is_b = x == B;
 
                     if is_a || is_b {
                         good += 1;
@@ -243,14 +250,4 @@ pub fn atomics_relaxed(target: u64) -> bool {
     }
 
     false
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn unsafe_fn() {
-        assert_eq!(true, unsafe_ub(100000000000000000));
-    }
 }
