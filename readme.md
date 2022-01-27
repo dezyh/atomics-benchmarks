@@ -1,4 +1,5 @@
-Testing the unsafe version which is UB. This seems to work every time.
+## Testing Unsafe
+Testing the unsafe version which could have UB seems to work every time.
 ```
 ❯ cargo test --release
     Finished release [optimized] target(s) in 0.02s
@@ -8,12 +9,6 @@ running 1 test
 test tests::unsafe_fn ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 11.88s
-
-   Doc-tests playground
-
-running 0 tests
-
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 ```
 
 Benchmarking the variants
@@ -23,13 +18,6 @@ Benchmarking the variants
 ```
 ❯ cargo bench
     Finished bench [optimized] target(s) in 0.02s
-     Running unittests (target/release/deps/playground-621359cee22db8c6)
-
-running 1 test
-test tests::unsafe_fn ... ignored
-
-test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
-
      Running unittests (target/release/deps/comparisons-ce0b61b0d98aed46)
 
 relaxed atomic u64      time:   [354.97 us 357.73 us 360.50 us]
