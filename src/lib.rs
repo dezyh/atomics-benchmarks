@@ -230,6 +230,6 @@ mod tests {
 
     #[test]
     fn unsafe_fn() {
-        assert_eq!(true, unsafe_ub(1000000000));
+        assert_eq!(true, unsafe_ub(100000000000));
     }
 }
